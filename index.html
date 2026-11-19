@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Measuring Adversarial Imperceptibility with Lₚ Norms — Interactive Lab</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">‖·‖ₚ</div>
+        <div class="brand-text">
+          <h1>Lₚ Norms &amp; Adversarial Imperceptibility</h1>
+          <p>Interactive Lab: How L₀, L₁, L₂, and L∞ Shape Visual Perturbations</p>
+        </div>
+      </div>
+
+      <div class="paper-badge">
+        <span>📘 MLS Chap 04-2 · Slides 15–19</span>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="perceptibility">
+          <span>🖼️ Perceptibility Lab</span>
+        </button>
+        <button class="nav-tab" data-tab="localization">
+          <span>🧩 Spatial Patterns (Slide 19)</span>
+        </button>
+        <button class="nav-tab" data-tab="geometry">
+          <span>📐 2D Unit Balls &amp; Geometry</span>
+        </button>
+        <button class="nav-tab" data-tab="theory">
+          <span>📚 Theory &amp; Course Notes</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- Shared Sample Image Toolbar (Visible on Tabs 1 & 2) -->
+    <div class="phase-banner" id="global-image-bar">
+      <div class="phase-banner-text">
+        <h3>
+          <span>Active Test Image</span>
+          <span class="status-pill info" id="current-image-badge">Beagle on Grass (Slide 19) (160×160)</span>
+        </h3>
+        <p>Switch between course-inspired test images or upload your own photo to test how each Lₚ norm affects human perceptibility.</p>
+      </div>
+      <div class="btn-group" style="align-items: center;">
+        <select id="select-sample-image" style="width: auto; min-width: 230px;">
+          <option value="beagle">Beagle on Grass (Slide 19)</option>
+          <option value="stopsign">Stop Sign (Traffic Classifier)</option>
+          <option value="stadium">Satellite Stadium (Slide 8)</option>
+          <option value="mnist3">MNIST Digit '3' (28×28, Slide 4)</option>
+        </select>
+        <label class="btn btn-primary btn-sm" for="input-upload-image" title="Load any local image from your computer">
+          <span>📁 Upload Image</span>
+        </label>
+        <input type="file" id="input-upload-image" accept="image/*" style="display: none;">
+      </div>
+    </div>
+
+    <!-- =========================================================
+         TAB 1: IMAGE PERCEPTIBILITY LAB (L∞, L2, L1, L0)
+         ========================================================= -->
+    <div class="tab-pane active" id="tab-perceptibility">
+
+      <div class="layout-2col">
+
+        <!-- Left Column: Visual Panels -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+          <!-- Mode Switcher Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">👁️ Visual Inspection of Norm-Constrained Perturbations</div>
+              <div class="radio-pills" style="min-width: 280px;">
+                <div class="radio-pill active view-mode-pill" data-view="single">Single-Norm Deep Dive</div>
+                <div class="radio-pill view-mode-pill" data-view="compare4">4-Way Side-by-Side</div>
+              </div>
+            </div>
+
+            <div class="card-body">
+
+              <!-- VIEW A: Single-Norm Deep Dive -->
+              <div id="percept-single-view">
+                <div class="grid-3col">
+                  <!-- Original -->
+                  <div class="image-panel">
+                    <div class="image-panel-title">
+                      <span>1. Original Image x</span>
+                      <span class="status-pill success">Clean</span>
+                    </div>
+                    <div class="image-canvas-box" id="p-orig-box">
+                      <canvas id="p-canvas-orig"></canvas>
+                    </div>
+                    <div class="image-panel-footer">
+                      Unaltered reference input
+                    </div>
+                  </div>
+
+                  <!-- Adversarial -->
+                  <div class="image-panel">
+                    <div class="image-panel-title">
+                      <span id="p-adv-title">2. Perturbed Image x′ (L∞)</span>
+                    </div>
+                    <div class="image-canvas-box" id="p-adv-box" style="cursor: pointer;" title="Press and hold to compare with the clean original">
+                      <canvas id="p-canvas-adv"></canvas>
+                      <span class="compare-hint">Hold image to peek Original x</span>
+                    </div>
+                    <div class="image-panel-footer">
+                      Test your eye: can you spot the perturbation?
+                    </div>
+                  </div>
+
+                  <!-- Amplified Diff -->
+                  <div class="image-panel">
+                    <div class="image-panel-title">
+                      <span>3. Perturbation Heatmap |x′ − x|</span>
+                    </div>
+                    <div class="image-canvas-box" id="p-diff-box">
+                      <canvas id="p-canvas-diff"></canvas>
+                    </div>
+                    <div class="image-panel-footer" id="p-diff-footer">
+                      Amplified |x′ − x| (6×)
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Simulated Decision Boundary Trade-off (Slide 15) -->
+                <div class="confidence-box">
+                  <div class="confidence-header">
+                    <strong>⚖️ Slide 15 Trade-Off: Classifier Confidence vs. Imperceptibility</strong>
+                    <span class="status-pill danger" id="p-conf-status">Fooled → Ostrich</span>
+                  </div>
+                  <div class="confidence-bar-track">
+                    <div class="confidence-bar-clean" id="p-conf-bar-clean" style="width: 15%;"></div>
+                    <div class="confidence-bar-adv" id="p-conf-bar-adv" style="width: 85%;"></div>
+                    <div class="confidence-boundary-marker" title="50:50 Decision Boundary"></div>
+                  </div>
+                  <div class="confidence-labels">
+                    <span id="p-conf-label-clean">Beagle: 15.0%</span>
+                    <span style="color: #fbbf24;">▲ Decision Boundary (50%)</span>
+                    <span id="p-conf-label-adv">Ostrich: 85.0%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- VIEW B: 4-Way Side-by-Side Comparison -->
+              <div id="percept-compare4-view" style="display: none;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; padding: 0.75rem 1rem; background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--bg-tertiary);">
+                  <div style="flex: 1; min-width: 220px;">
+                    <div class="control-label">
+                      <span>Overall Attack Strength (Compare All 4 Norms)</span>
+                      <span class="control-value" id="p-compare4-strength-val">35%</span>
+                    </div>
+                    <input type="range" id="p-compare4-strength" min="0" max="100" value="35" step="1">
+                  </div>
+                  <label class="checkbox-row">
+                    <input type="checkbox" id="p-compare4-show-diff">
+                    <span>Show Amplified Perturbation Heatmaps (6×)</span>
+                  </label>
+                </div>
+
+                <div class="grid-4col">
+                  <div class="image-panel highlight-linf">
+                    <div class="image-panel-title">
+                      <span>L∞ (Max Norm)</span>
+                      <span class="status-pill info">Uniform</span>
+                    </div>
+                    <div class="image-canvas-box"><canvas id="c4-canvas-linf"></canvas></div>
+                    <div class="image-panel-footer">
+                      <div class="mini-norms">
+                        <div class="mini-norm-item"><span class="mini-norm-label">L₀</span><span class="mini-norm-val" id="c4-l0-linf">--</span></div>
+                        <div class="mini-norm-item"><span class="mini-norm-label">L₂</span><span class="mini-norm-val" id="c4-l2-linf">--</span></div>
+                        <div class="mini-norm-item"><span class="mini-norm-label">L∞</span><span class="mini-norm-val" id="c4-linf-linf">--</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="image-panel highlight-l2">
+                    <div class="image-panel-title">
+                      <span>L₂ (Euclidean)</span>
+                      <span class="status-pill success">Smooth Energy</span>
+                    </div>
+                    <div class="image-canvas-box"><canvas id="c4-canvas-l2"></canvas></div>
+                    <div class="image-panel-footer">
+                      <div class="mini-norms">
+                        <div class="mini-norm-item"><span class="mini-norm-label">L₀</span><span class="mini-norm-val" id="c4-l0-l2">--</span></div>
+                        <div class="mini-norm-item"><span class="mini-norm-label">L₂</span><span class="mini-norm-val" id="c4-l2-l2">--</span></div>
+                        <div class="mini-norm-item"><span class="mini-norm-label">L∞</span><span class="mini-norm-val" id="c4-linf-l2">--</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="image-panel highlight-l1">
+                    <div class="image-panel-title">
+                      <span>L₁ (Manhattan)</span>
+                      <span class="status-pill warning">Sparse Spikes</span>
+                    </div>
+                    <div class="image-canvas-box"><canvas id="c4-canvas-l1"></canvas></div>
+                    <div class="image-panel-footer">
+                      <div class="mini-norms">
+                        <div class="mini-norm-item"><span class="mini-norm-label">L₀</span><span class="mini-norm-val" id="c4-l0-l1">--</span></div>
+                        <div class="mini-norm-item"><span class="mini-norm-label">L₂</span><span class="mini-norm-val" id="c4-l2-l1">--</span></div>
+                        <div class="mini-norm-item"><span class="mini-norm-label">L∞</span><span class="mini-norm-val" id="c4-linf-l1">--</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="image-panel highlight-l0">
+                    <div class="image-panel-title">
+                      <span>L₀ (Pixel Count)</span>
+                      <span class="status-pill danger">Few Pixels</span>
+                    </div>
+                    <div class="image-canvas-box"><canvas id="c4-canvas-l0"></canvas></div>
+                    <div class="image-panel-footer">
+                      <div class="mini-norms">
+                        <div class="mini-norm-item"><span class="mini-norm-label">L₀</span><span class="mini-norm-val" id="c4-l0-l0">--</span></div>
+                        <div class="mini-norm-item"><span class="mini-norm-label">L₂</span><span class="mini-norm-val" id="c4-l2-l0">--</span></div>
+                        <div class="mini-norm-item"><span class="mini-norm-label">L∞</span><span class="mini-norm-val" id="c4-linf-l0">--</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Dynamic Pedagogical Insight -->
+          <div class="callout" id="p-insight-box"></div>
+
+        </div>
+
+        <!-- Right Column: Controls & Live Norm Telemetry -->
+        <div class="controls-section">
+
+          <!-- Live Norm Telemetry -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📊 Live Lₚ Norm Measurements</div>
+            </div>
+            <div class="card-body">
+              <div class="metrics-grid">
+                <div class="metric-card active-norm" id="p-card-linf">
+                  <div class="metric-title">L∞ (Max Norm)</div>
+                  <div class="metric-value" id="p-stat-linf">0.031</div>
+                  <div class="metric-sub" id="p-stat-linf-sub">8/255 max channel shift</div>
+                </div>
+
+                <div class="metric-card" id="p-card-l2">
+                  <div class="metric-title">L₂ (Euclidean)</div>
+                  <div class="metric-value" id="p-stat-l2">0.00</div>
+                  <div class="metric-sub">√Σ(x′ᵢ − xᵢ)² in [0,1]</div>
+                </div>
+
+                <div class="metric-card" id="p-card-l1">
+                  <div class="metric-title">L₁ (Manhattan)</div>
+                  <div class="metric-value" id="p-stat-l1">0.0</div>
+                  <div class="metric-sub">Σ|x′ᵢ − xᵢ| in [0,1]</div>
+                </div>
+
+                <div class="metric-card" id="p-card-l0">
+                  <div class="metric-title">L₀ (Altered Pixels)</div>
+                  <div class="metric-value" id="p-stat-l0">0 px</div>
+                  <div class="metric-sub" id="p-stat-l0-sub">0.0% of pixels</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Perturbation Controls -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🎛️ Perturbation Constraint</div>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 1.05rem;">
+
+              <div class="control-group">
+                <label class="control-label">Constrained Attack Norm</label>
+                <div class="radio-pills">
+                  <div class="radio-pill active norm-pill" data-norm="linf">L∞</div>
+                  <div class="radio-pill norm-pill" data-norm="l2">L₂</div>
+                  <div class="radio-pill norm-pill" data-norm="l1">L₁</div>
+                  <div class="radio-pill norm-pill" data-norm="l0">L₀</div>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <div class="control-label">
+                  <span id="percept-slider-label">Max Pixel Change ε (8-bit)</span>
+                  <span class="control-value" id="percept-slider-val">8/255 (0.031)</span>
+                </div>
+                <input type="range" id="percept-slider" min="0" max="64" value="8" step="1">
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Quick Course Presets</label>
+                <div class="btn-group" id="percept-presets"></div>
+              </div>
+
+              <div class="control-group">
+                <div class="control-label">
+                  <span>Difference Heatmap Amplification</span>
+                  <span class="control-value" id="percept-amp-val">6×</span>
+                </div>
+                <input type="range" id="percept-amp-slider" min="1" max="20" value="6" step="1">
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- =========================================================
+         TAB 2: SPATIAL LOCALIZATION & METRIC PARADOX (SLIDE 19)
+         ========================================================= -->
+    <div class="tab-pane" id="tab-localization">
+
+      <div class="card" style="margin-bottom: 1.25rem;">
+        <div class="card-header">
+          <div class="card-title">🧩 Spatial Localization Patterns: Why L₀, L₂, and L∞ Disagree (Ozbulak et al., 2020 — Slide 19)</div>
+          <div class="radio-pills" style="min-width: 380px;">
+            <div class="radio-pill active loc-mode-pill" data-mode="slide19_realistic">Slide 19: Equal Attack Goal</div>
+            <div class="radio-pill loc-mode-pill" data-mode="match_l2">Hold L₂ Constant</div>
+            <div class="radio-pill loc-mode-pill" data-mode="match_linf">Hold L∞ Constant</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          <!-- Controls Row -->
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 1.25rem; padding: 0.85rem 1rem; background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--bg-tertiary);">
+            <div style="flex: 1; min-width: 240px;">
+              <div class="control-label">
+                <span>Perturbation Intensity Scale</span>
+                <span class="control-value" id="loc-intensity-val">55%</span>
+              </div>
+              <input type="range" id="loc-intensity-slider" min="10" max="100" value="55" step="1">
+            </div>
+            <label class="checkbox-row">
+              <input type="checkbox" id="loc-show-diff">
+              <span>Reveal Perturbation Mask (6× Amplified)</span>
+            </label>
+          </div>
+
+          <!-- 4 Localization Panels matching Slide 19 -->
+          <div class="grid-4col">
+
+            <!-- 1. No Localization -->
+            <div class="image-panel">
+              <div class="image-panel-title">
+                <span>1. No Localization</span>
+                <span class="status-pill info">Full Image</span>
+              </div>
+              <div class="image-canvas-box" id="loc-box-none">
+                <canvas id="loc-canvas-none"></canvas>
+              </div>
+              <div class="image-panel-footer">
+                Spread evenly across every pixel
+                <div class="mini-norms">
+                  <div class="mini-norm-item"><span class="mini-norm-label">L₀</span><span class="mini-norm-val" id="loc-l0-none">0.99</span></div>
+                  <div class="mini-norm-item"><span class="mini-norm-label">L₂</span><span class="mini-norm-val" id="loc-l2-none">0.00</span></div>
+                  <div class="mini-norm-item"><span class="mini-norm-label">L∞</span><span class="mini-norm-val" id="loc-linf-none">0.00</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Center -->
+            <div class="image-panel">
+              <div class="image-panel-title">
+                <span>2. Center</span>
+                <span class="status-pill success">~18% Area</span>
+              </div>
+              <div class="image-canvas-box" id="loc-box-center">
+                <canvas id="loc-canvas-center"></canvas>
+              </div>
+              <div class="image-panel-footer">
+                Confined to central subject patch
+                <div class="mini-norms">
+                  <div class="mini-norm-item"><span class="mini-norm-label">L₀</span><span class="mini-norm-val" id="loc-l0-center">0.18</span></div>
+                  <div class="mini-norm-item"><span class="mini-norm-label">L₂</span><span class="mini-norm-val" id="loc-l2-center">0.00</span></div>
+                  <div class="mini-norm-item"><span class="mini-norm-label">L∞</span><span class="mini-norm-val" id="loc-linf-center">0.00</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Frame -->
+            <div class="image-panel">
+              <div class="image-panel-title">
+                <span>3. Frame</span>
+                <span class="status-pill warning">~18% Area</span>
+              </div>
+              <div class="image-canvas-box" id="loc-box-frame">
+                <canvas id="loc-canvas-frame"></canvas>
+              </div>
+              <div class="image-panel-footer">
+                Confined to thin outer border
+                <div class="mini-norms">
+                  <div class="mini-norm-item"><span class="mini-norm-label">L₀</span><span class="mini-norm-val" id="loc-l0-frame">0.18</span></div>
+                  <div class="mini-norm-item"><span class="mini-norm-label">L₂</span><span class="mini-norm-val" id="loc-l2-frame">0.00</span></div>
+                  <div class="mini-norm-item"><span class="mini-norm-label">L∞</span><span class="mini-norm-val" id="loc-linf-frame">0.00</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Random -->
+            <div class="image-panel">
+              <div class="image-panel-title">
+                <span>4. Random</span>
+                <span class="status-pill info">~18% Area</span>
+              </div>
+              <div class="image-canvas-box" id="loc-box-random">
+                <canvas id="loc-canvas-random"></canvas>
+              </div>
+              <div class="image-panel-footer">
+                Scattered randomly across image
+                <div class="mini-norms">
+                  <div class="mini-norm-item"><span class="mini-norm-label">L₀</span><span class="mini-norm-val" id="loc-l0-random">0.18</span></div>
+                  <div class="mini-norm-item"><span class="mini-norm-label">L₂</span><span class="mini-norm-val" id="loc-l2-random">0.00</span></div>
+                  <div class="mini-norm-item"><span class="mini-norm-label">L∞</span><span class="mini-norm-val" id="loc-linf-random">0.00</span></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="callout" id="loc-insight-box" style="margin-top: 1.25rem;"></div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =========================================================
+         TAB 3: 2D GEOMETRY & Lp UNIT BALLS (SLIDES 15–18)
+         ========================================================= -->
+    <div class="tab-pane" id="tab-geometry">
+
+      <div class="layout-2col">
+
+        <!-- Left: 2D Interactive Canvas + Convergence Chart -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+          <div class="canvas-wrapper">
+            <canvas id="geom-main-canvas"></canvas>
+
+            <div class="canvas-overlay-legend">
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #38bdf8;"></span>
+                <span>x Original Sample (0, 0)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #10b981;"></span>
+                <span>x′ Min-Lₚ Perturbation</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-line" style="background: #f43f5e;"></span>
+                <span>Decision Boundary (drag to move!)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 18 Convergence Chart -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📉 Why Not L₃ or L₄? Rapid Convergence to L∞ (Slide 18)</div>
+            </div>
+            <div class="card-body" style="padding: 0.75rem;">
+              <canvas id="geom-conv-canvas" style="width: 100%; height: 210px; display: block;"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Geometry Controls & Telemetry -->
+        <div class="controls-section">
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📊 Optimal 2-Pixel Perturbation v* = x′ − x</div>
+            </div>
+            <div class="card-body">
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-title">Pixel 1 Change (Δx₁)</div>
+                  <div class="metric-value" id="geom-stat-v1">0.000</div>
+                  <div class="metric-sub">First coordinate</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title">Pixel 2 Change (Δx₂)</div>
+                  <div class="metric-value" id="geom-stat-v2">0.000</div>
+                  <div class="metric-sub">Second coordinate</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title" id="geom-stat-lp-label">L₂ Norm</div>
+                  <div class="metric-value" id="geom-stat-lp">0.000</div>
+                  <div class="metric-sub">Minimal distance to boundary</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title">2D Ball Geometry</div>
+                  <div class="metric-value" id="geom-stat-shape" style="font-size: 0.9rem;">Circle</div>
+                  <div class="metric-sub">Unit ball contour</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚙️ Explore Exponent p</div>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 1rem;">
+
+              <div class="control-group">
+                <label class="control-label">Quick-Select Exponent p (Slide 15)</label>
+                <div class="radio-pills">
+                  <div class="radio-pill p-pill" data-p="0">L₀</div>
+                  <div class="radio-pill p-pill" data-p="0.5">0.5</div>
+                  <div class="radio-pill p-pill" data-p="1">L₁</div>
+                  <div class="radio-pill p-pill" data-p="1.5">1.5</div>
+                  <div class="radio-pill active p-pill" data-p="2">L₂</div>
+                  <div class="radio-pill p-pill" data-p="4">L₄</div>
+                  <div class="radio-pill p-pill" data-p="inf">L∞</div>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <div class="control-label">
+                  <span>Continuous Exponent p</span>
+                  <span class="control-value" id="geom-p-val">p = 2</span>
+                </div>
+                <input type="range" id="geom-p-slider" min="0" max="100" value="50" step="0.5">
+              </div>
+
+              <div class="control-group" style="gap: 0.55rem;">
+                <label class="control-label">Reference Overlays (Unit Radius = 1)</label>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="geom-chk-boundary" checked>
+                  <span>Show Draggable Decision Boundary &amp; Loss Contours</span>
+                </label>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="geom-chk-l1" checked>
+                  <span style="color: #fbbf24;">Overlay L₁ Diamond (p = 1)</span>
+                </label>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="geom-chk-l2" checked>
+                  <span style="color: #38bdf8;">Overlay L₂ Circle (p = 2)</span>
+                </label>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="geom-chk-l4">
+                  <span style="color: #f472b6;">Overlay L₄ Squircle (p = 4)</span>
+                </label>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="geom-chk-linf" checked>
+                  <span style="color: #c084fc;">Overlay L∞ Square (p → ∞)</span>
+                </label>
+              </div>
+
+              <div class="callout" id="geom-insight-box"></div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- =========================================================
+         TAB 4: THEORY & COURSE SUMMARY (SLIDES 15–19)
+         ========================================================= -->
+    <div class="tab-pane" id="tab-theory">
+      <div class="theory-content">
+
+        <div class="theory-section">
+          <h2>⚖️ Balancing Effectiveness &amp; Imperceptibility (Slide 15)</h2>
+          <p>
+            When crafting an adversarial example <em>x′</em> from an original clean input <em>x</em>, evasion attacks face a fundamental geometric trade-off around the classifier's decision boundary:
+          </p>
+          <ul>
+            <li><strong>Closer to the decision boundary:</strong> The perturbation is smaller and harder for a human to spot, but the misclassification is <em>fragile</em> (tiny input variations or preprocessing can flip it back to the true class).</li>
+            <li><strong>Farther past the decision boundary:</strong> Misclassification confidence becomes very strong (e.g., 99%), but the visual distortion becomes increasingly noticeable to a human observer.</li>
+          </ul>
+          <p>
+            To quantify and constrain the magnitude of the difference vector <em>v = x′ − x</em> across <em>n</em> input dimensions (pixels/channels), adversarial ML uses the general <strong>Lₚ norm</strong>:
+          </p>
+          <div class="formula-block">
+            ||x′ − x||ₚ = ( |x′₁ − x₁|ᵖ + |x′₂ − x₂|ᵖ + … + |x′ₙ − xₙ|ᵖ )^(1/p) = ( ∑ᵢ₌₁ⁿ |x′ᵢ − xᵢ|ᵖ )^(1/p)
+          </div>
+        </div>
+
+        <div class="theory-section">
+          <h2>📊 Comparison of L₀, L₁, L₂, and L∞ Norms (Slides 16–18)</h2>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Norm</th>
+                <th>Formula</th>
+                <th>2D Unit Ball</th>
+                <th>Visual Effect on Images</th>
+                <th>Common Attacks &amp; Practicality</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong style="color: var(--norm-linf);">L∞ (Max Norm)</strong></td>
+                <td><code>maxᵢ |x′ᵢ − xᵢ|</code></td>
+                <td>Square</td>
+                <td>Every pixel changes by at most a tiny uniform bound ε (e.g., <code>ε = 8/255</code>). Very hard for humans to spot individual outliers.</td>
+                <td><strong>FGSM</strong>, <strong>L∞-PGD</strong>, <strong>HopSkipJump</strong>. Computationally trivial and widely used.</td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--norm-l2);">L₂ (Euclidean)</strong></td>
+                <td><code>√(∑ᵢ (x′ᵢ − xᵢ)²)</code></td>
+                <td>Circle / Sphere</td>
+                <td>Bounds total cumulative energy. Allows slightly larger changes on a few pixels if compensated by minimal changes elsewhere.</td>
+                <td><strong>Carlini &amp; Wagner (C&amp;W)</strong>, <strong>L₂-PGD</strong>, <strong>HopSkipJump</strong>. Smooth, differentiable, standard benchmark.</td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--norm-l1);">L₁ (Manhattan)</strong></td>
+                <td><code>∑ᵢ |x′ᵢ − xᵢ|</code></td>
+                <td>Diamond</td>
+                <td>Encourages <strong>sparsity</strong> along axes: concentrates large, noticeable color/brightness shifts into a moderate subset of pixels.</td>
+                <td>Generally <strong>avoided</strong> for imperceptible image attacks because humans easily spot moderate clusters of strongly altered pixels.</td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--norm-l0);">L₀ (Pseudo-Norm)</strong></td>
+                <td><code>#{ i | x′ᵢ ≠ xᵢ }</code></td>
+                <td>Coordinate Axes</td>
+                <td>Counts exact number of altered pixels (e.g., 1, 3, or 5 pixels), allowing arbitrary color changes on those pixels while leaving all others untouched.</td>
+                <td><strong>One-Pixel Attack</strong> (Su et al., 2019), localized patch attacks. Non-convex &amp; non-differentiable (hard for gradient optimization).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="theory-section">
+          <h2>🤔 Why Not Other Lₚ Norms? (Slides 16 &amp; 18)</h2>
+          <h3>Why not 1 &lt; p &lt; 2 (e.g., p = 1.5)?</h3>
+          <p>
+            While mathematically valid convex norms, values strictly between 1 and 2 offer <strong>no practical or perceptual advantage</strong> over L₂ or L∞.
+          </p>
+          <h3>Why not p &gt; 2 (e.g., p = 3 or p = 4)?</h3>
+          <p>
+            For any <em>p &gt; 2</em>, raising differences to high powers causes the sum to be <strong>heavily dominated by the single component with the largest magnitude</strong>. Geometrically, the L₄ squircle already hugs the L∞ square tightly (try toggling the L₄ overlay in the <em>2D Geometry</em> tab!). Thus, the practical difference between L₄ and L∞ is negligible—yet computing fractional roots of high powers across thousands of pixels is computationally expensive, whereas L∞ simply takes <code>maxᵢ |x′ᵢ − xᵢ|</code>.
+          </p>
+        </div>
+
+        <div class="theory-section">
+          <h2>🧩 Spatial Localization &amp; Limitations of Lₚ Metrics (Slide 19)</h2>
+          <p>
+            As demonstrated by <strong>Ozbulak et al. (2020)</strong>, no single Lₚ norm perfectly captures human visual perception:
+          </p>
+          <ul>
+            <li><strong>Unlocalized low-intensity noise</strong> alters nearly every pixel (huge <code>L₀ ≈ 0.99</code> and moderate-high <code>L₂</code>), yet remains nearly invisible because <code>L∞</code> is tiny.</li>
+            <li><strong>Localized patches or border frames</strong> modify far fewer pixels (low <code>L₀ ≈ 0.15–0.28</code> and often lower <code>L₂</code>), yet can be <em>more</em> noticeable to a human observer when concentrated into a sharp border or high-contrast patch.</li>
+          </ul>
+          <p>
+            Explore the <strong>Spatial Patterns (Slide 19)</strong> tab using <em>Hold L₂ Constant</em> to witness firsthand how identical L₂ distances can produce dramatically different visual visibility!
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/sample-images.js"></script>
+  <script src="js/norms-core.js"></script>
+  <script src="js/perceptibility-lab.js"></script>
+  <script src="js/localization-lab.js"></script>
+  <script src="js/geometry-viz.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
