@@ -45,11 +45,12 @@ Simply open `index.html` directly in any modern browser:
 ## 📁 Project Structure
 
 ```
-LpNorms/
+l-norms/
 ├── index.html                  # Main 4-tab interactive interface
+├── LAB_TUTORIAL.md             # 30-minute self-paced student tutorial with discussion checkpoints
 ├── README.md                   # Documentation & pedagogical guide
 ├── css/
-│   └── style.css               # Dark theme & responsive layout (matching HopSkipJump)
+│   └── style.css               # Dark theme & responsive layout
 └── js/
     ├── sample-images.js        # Procedural offline test images + custom image upload loader
     ├── norms-core.js           # Lp norm calculations, perturbation generators & spatial masks
