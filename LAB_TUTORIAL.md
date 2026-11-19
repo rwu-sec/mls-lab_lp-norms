@@ -1,7 +1,7 @@
 # Student Lab Tutorial: Exploring Adversarial Imperceptibility with $L_p$ Norms
 
 **Estimated Duration:** 30 minutes (4 phases: 18 min hands-on exploration + 4 × 3 min group/pair discussions)  
-**Prerequisites:** Open [`index.html`](index.html) in a modern web browser (Chrome, Firefox, Edge, or Safari). No installation or internet connection required.  
+**Prerequisites:** Open [`index.html`](index.html) in a modern web browser (Chrome, Firefox, Edge, or Safari). No installation required.  
 **Course Material:** *Machine Learning Security* — Lecturer: **Prof. Dr. Stephan Kleber** (lecture designed in cooperation with **Prof. Dr. Frank Kargl**, Ulm University) · Chapter 04-2 (Slides 15–19)  
 **License:** Open Source ([MIT License](LICENSE)) — Copyright © 2026 Prof. Dr. Stephan Kleber
 
