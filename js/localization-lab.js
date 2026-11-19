@@ -3,6 +3,11 @@
  * Tab 2: Spatial Localization & Metric Paradox (Slide 19 — Ozbulak et al., 2020).
  * Compares No Localization, Center, Frame, and Random spatial perturbation patterns
  * side-by-side to demonstrate how L0, L2, and Linf disagree with human perception.
+ *
+ * Course Material: Machine Learning Security (Prof. Dr. Stephan Kleber,
+ * in cooperation with Prof. Dr. Frank Kargl, Ulm University)
+ * Copyright (c) 2026 Prof. Dr. Stephan Kleber
+ * SPDX-License-Identifier: MIT
  */
 
 const LocalizationLab = (() => {

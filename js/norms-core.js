@@ -3,6 +3,11 @@
  * Mathematical engine for Lp norms (L0, L1, L2, Lp, Linf), adversarial perturbation
  * generation under norm constraints, spatial localization masks (Ozbulak et al., 2020),
  * and simulated decision-boundary confidence.
+ *
+ * Course Material: Machine Learning Security (Prof. Dr. Stephan Kleber,
+ * in cooperation with Prof. Dr. Frank Kargl, Ulm University)
+ * Copyright (c) 2026 Prof. Dr. Stephan Kleber
+ * SPDX-License-Identifier: MIT
  */
 
 const NormsCore = (() => {

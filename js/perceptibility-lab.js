@@ -3,6 +3,11 @@
  * Tab 1: Interactive Image Perceptibility Lab.
  * Allows students to observe how L_inf, L_2, L_1, and L_0 constrained perturbations
  * affect visual perceptibility, classifier confidence, and all four Lp metrics simultaneously.
+ *
+ * Course Material: Machine Learning Security (Prof. Dr. Stephan Kleber,
+ * in cooperation with Prof. Dr. Frank Kargl, Ulm University)
+ * Copyright (c) 2026 Prof. Dr. Stephan Kleber
+ * SPDX-License-Identifier: MIT
  */
 
 const PerceptibilityLab = (() => {

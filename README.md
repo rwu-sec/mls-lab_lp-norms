@@ -1,6 +1,8 @@
 # Lₚ Norms & Adversarial Imperceptibility: Interactive Browser Lab
 
-An interactive, zero-dependency educational JavaScript lab demonstrating how **$L_0$, $L_1$, $L_2$, and $L_\infty$ norms** measure and shape the visual perceptibility of adversarial perturbations—aligned with **MLS Chapter 04-2 (Slides 15–19)** and *Ozbulak et al. (2020)*.
+An interactive, zero-dependency educational JavaScript lab demonstrating how **$L_0$, $L_1$, $L_2$, and $L_\infty$ norms** measure and shape the visual perceptibility of adversarial perturbations—aligned with **Machine Learning Security, Chapter 04-2 (Slides 15–19)** and *Ozbulak et al. (2020)*.
+
+> **Course Material:** This interactive lab and accompanying tutorial ([`LAB_TUTORIAL.md`](LAB_TUTORIAL.md)) are open-source course materials for the lecture **"Machine Learning Security"** by **Prof. Dr. Stephan Kleber**, designed in cooperation with **Prof. Dr. Frank Kargl, Ulm University**.
 
 ## 🚀 How to Run Locally
 
@@ -48,6 +50,7 @@ Simply open `index.html` directly in any modern browser:
 l-norms/
 ├── index.html                  # Main 4-tab interactive interface
 ├── LAB_TUTORIAL.md             # 30-minute self-paced student tutorial with discussion checkpoints
+├── LICENSE                     # MIT Open-Source License
 ├── README.md                   # Documentation & pedagogical guide
 ├── css/
 │   └── style.css               # Dark theme & responsive layout
@@ -59,3 +62,13 @@ l-norms/
     ├── geometry-viz.js         # Tab 3: Interactive 2D Lp unit balls & p -> inf convergence chart
     └── app.js                  # Tab navigation & shared image state controller
 ```
+
+---
+
+## 📄 Attribution & License
+
+- **Lecture:** *Machine Learning Security*
+- **Lecturer:** Prof. Dr. Stephan Kleber (in cooperation with Prof. Dr. Frank Kargl, Ulm University)
+- **License:** Open source under the **MIT License** — see [`LICENSE`](LICENSE) for full terms.
+
+Copyright © 2026 Prof. Dr. Stephan Kleber.

@@ -2,6 +2,11 @@
  * app.js
  * Main controller connecting navigation tabs, shared sample/uploaded image state,
  * and the three interactive lab modules (PerceptibilityLab, LocalizationLab, GeometryViz).
+ *
+ * Course Material: Machine Learning Security (Prof. Dr. Stephan Kleber,
+ * in cooperation with Prof. Dr. Frank Kargl, Ulm University)
+ * Copyright (c) 2026 Prof. Dr. Stephan Kleber
+ * SPDX-License-Identifier: MIT
  */
 
 document.addEventListener('DOMContentLoaded', () => {

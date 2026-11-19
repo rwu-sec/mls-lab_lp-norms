@@ -3,6 +3,11 @@
  * Tab 3: 2D Feature Space Geometry, Lp Unit Balls & Optimization Contours (Slides 15–18).
  * Interactive draggable decision boundary showing the exact minimum-Lp adversarial
  * perturbation v* and a live "Why not p = 4?" convergence chart.
+ *
+ * Course Material: Machine Learning Security (Prof. Dr. Stephan Kleber,
+ * in cooperation with Prof. Dr. Frank Kargl, Ulm University)
+ * Copyright (c) 2026 Prof. Dr. Stephan Kleber
+ * SPDX-License-Identifier: MIT
  */
 
 const GeometryViz = (() => {

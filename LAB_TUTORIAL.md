@@ -2,7 +2,8 @@
 
 **Estimated Duration:** 30 minutes (4 phases: 18 min hands-on exploration + 4 × 3 min group/pair discussions)  
 **Prerequisites:** Open [`index.html`](index.html) in a modern web browser (Chrome, Firefox, Edge, or Safari). No installation or internet connection required.  
-**Course Reference:** *Machine Learning & Security — Chapter 04-2 (Slides 15–19)*
+**Course Material:** *Machine Learning Security* — Lecturer: **Prof. Dr. Stephan Kleber** (lecture designed in cooperation with **Prof. Dr. Frank Kargl**, Ulm University) · Chapter 04-2 (Slides 15–19)  
+**License:** Open Source ([MIT License](LICENSE)) — Copyright © 2026 Prof. Dr. Stephan Kleber
 
 ---
 
@@ -122,3 +123,7 @@ Wrap up with your group using what you observed across all four phases:
 ## 🌟 Optional Bonus (If You Finish Early)
 - Go back to **`🖼️ Perceptibility Lab`**, click **`📁 Upload Image`**, and load a photo of your choice (e.g., a portrait, a landscape, or a screenshot with text).
 - Find the largest $\epsilon$ under $L_\infty$ and the largest $L_2$ budget where you *cannot* distinguish $x'$ from $x$ using the **Hold to peek Original** button. Compare your thresholds with a classmate!
+
+---
+
+*Course material for **Machine Learning Security** by **Prof. Dr. Stephan Kleber** (designed in cooperation with **Prof. Dr. Frank Kargl**, Ulm University). Open source under the [MIT License](LICENSE). Copyright © 2026 Prof. Dr. Stephan Kleber.*

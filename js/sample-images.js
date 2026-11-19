@@ -3,6 +3,11 @@
  * Procedural, self-contained RGB test images inspired by the course slides
  * (mls-chap04-2.pdf: Beagle on grass, Stop Sign, Satellite Stadium, MNIST Digit '3')
  * plus support for uploading any custom local image.
+ *
+ * Course Material: Machine Learning Security (Prof. Dr. Stephan Kleber,
+ * in cooperation with Prof. Dr. Frank Kargl, Ulm University)
+ * Copyright (c) 2026 Prof. Dr. Stephan Kleber
+ * SPDX-License-Identifier: MIT
  */
 
 const SampleImages = (() => {
